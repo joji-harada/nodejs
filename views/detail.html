@@ -1,4 +1,17 @@
-<h1>Details</h1>
-<p>
-you searched for: {{name}}
-</p>
+<h2>Details for {{title}}</h2>
+
+{{#if result}}
+    <li>Title: {{ result.title }}</li>
+    <li>Type: {{ result.type }}</li>
+    <li>Price: {{ result.price }}</li>
+{{else}}
+    <h2>Not Found</h2>
+{{/if}}
+
+<a href="/delete?computer={{title}}">
+    Click here to delete this item.
+</a>
+
+<br>
+
+<a href="/">Go Back</a>

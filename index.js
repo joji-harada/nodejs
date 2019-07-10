@@ -1,59 +1,59 @@
+'use strict'
 const computers = require("./lib/data");
+const express = require("express");
+const bodyParser = require("body-parser");
+const app = express();
 
-const http = require("http"); 
+app.set('port', process.env.PORT || 3000);
+app.use(express.static(__dirname + '/public')); // set location for static files
+app.use(bodyParser.urlencoded({extended: true})); // parse form submissions
 
-http.createServer((req,res) => {
-  const url = req.url.toLowerCase().split("?");
-  const fs = require("fs");
-    
-  switch(url[0]) {
-    case '/':
-       fs.readFile("public/home.html", (err, data) => {
-         if (err) return console.error(err);
-         res.writeHead(200, {'Content-Type': 'text/html'});
-         res.end(data.toString());
-        });
-      break;
-    case '/about':
-       fs.readFile("public/about.html", (err, data) => {
-         if (err) return console.error(err);
-         res.writeHead(200, {'Content-Type': 'text/html'});
-         res.end(data.toString());
-        });
-      break;
-    case '/get':
-        if(url[1] === undefined){
-            fs.readFile("public/errorpage.html", (err, data) => {
-                if (err) return console.error(err);
-                res.writeHead(200, {'Content-Type': 'text/html'});
-                res.end(data.toString());
-            });
-        } else {
-            let params = url[1].split("=");
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end(
-            JSON.stringify(computers.getItem(params[1])),
-        );
-        }
-      break;
-    case '/delete':
-        if(url[1] === undefined){
-            fs.readFile("public/errorpage.html", (err, data) => {
-                if (err) return console.error(err);
-                res.writeHead(200, {'Content-Type': 'text/html'});
-                res.end(data.toString());
-            });
-        } else {
-            let paramsDelete = url[1].split("=");
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('You have deleted: ' + JSON.stringify(computers.getItem(paramsDelete[1])));
-        computers.deleteItem(paramsDelete[1]);
-        }
-          console.log(computers.getAll())
-      break;
-    default:
-      res.writeHead(404, {'Content-Type': 'text/plain'});
-      res.end('Not found');
-      break;
-    }
-}).listen(process.env.PORT || 3000);
+const handlebars = require("express-handlebars");
+app.engine(".html", handlebars({extname: '.html', defaultLayout: false}));
+app.set("view engine", ".html");
+
+
+// send static file as response
+//app.get('/', (req, res) => {
+//    res.type('text/html');
+//    res.sendFile(__dirname + '/public/home.html');
+//});
+
+/*below uses handlebars templating and views
+the curly brackets accesses the {{}} in view/home.html file
+and inserts the key-value pair into the {{}} statement*/
+app.get('/', (req, res) => {
+    res.render('home');
+});
+
+// send plain text response
+app.get('/about', (req, res) => {
+    res.type('text/html');
+    res.sendFile(__dirname + '/public/about.html');
+});
+
+// handle form submission response
+app.post('/detail', (req,res) => {
+    let result = computers.getItem(req.body.computer);
+    res.render('detail', {title: req.body.computer, result: result})
+});
+
+app.get('/delete', (req,res) => {
+    //let deletedItem = computers.getItem(req.query.computer);
+    let result = computers.deleteItem(req.query.computer);
+    res.render('delete', {
+        deletedItem: req.query.computer,
+        result: result})
+});
+
+// define 404 handler
+app.use( (req,res) => {
+    res.type('text/plain');
+    res.status(404);
+    res.send('404 - Not found');
+});
+
+app.listen(app.get('port'), () => {
+    console.log('Express started');
+});
+
