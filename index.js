@@ -46,6 +46,22 @@ app.get('/delete', (req,res) => {
         result: result})
 });
 
+app.get('/addform', (req,res) => {
+    res.render('addform');
+})
+
+app.post('/add', (req,res) => {
+    let title = req.body.title;
+    let type = req.body.type;
+    let price = req.body.price;
+    let newObject = {title, type, price}
+    let result = computers.addItem(newObject);
+    res.render('add', {
+        title: req.body.title,
+        resultStats: result[0],
+        resultDet: result[1]});
+});
+
 // define 404 handler
 app.use( (req,res) => {
     res.type('text/plain');
