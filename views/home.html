@@ -3,7 +3,16 @@
 
 <form action="/detail" method="post">
     <legend>Enter a computer to search for:</legend>
-        <input type=text name="computer">
+        <input type=text name="title">
     <button>Submit</button>
 </form>
 
+
+<p>{{computers}}</p>
+
+<br>
+
+<!--runs through db and returns a list of items inside-->
+{{#each computers}}
+<li><a href="/detail?title={{title}}">{{title}}</a></li>
+{{/each}}

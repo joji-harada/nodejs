@@ -1,21 +1,19 @@
-<h2>Details for {{title}}</h2>
+<h2>Details:</h2>
 
-{{#if result}}
-    <li>Title: {{ result.title }}</li>
-    <li>Type: {{ result.type }}</li>
-    <li>Price: {{ result.price }}</li>
+{{#if computer}}
+    <h3>{{computer}}</h3>
 {{else}}
     <h2>Not Found</h2>
 {{/if}}
 
-<a href="/delete?computer={{title}}">
+<a href="/delete?title={{computer.title}}">
     Click here to delete this item.
 </a>
 
 <br>
 
 <a href="addform">
-    Click here to add this item.
+    If the item is not found, click here to add this item.
 </a>
 
 <br>

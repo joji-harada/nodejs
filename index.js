@@ -1,5 +1,6 @@
 'use strict'
-const computers = require("./lib/data");
+// const computers = require("./lib/data");
+const computers = require('./models/computer');
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
@@ -13,37 +14,48 @@ app.engine(".html", handlebars({extname: '.html', defaultLayout: false}));
 app.set("view engine", ".html");
 
 
-// send static file as response
-//app.get('/', (req, res) => {
-//    res.type('text/html');
-//    res.sendFile(__dirname + '/public/home.html');
-//});
-
 /*below uses handlebars templating and views
 the curly brackets accesses the {{}} in view/home.html file
 and inserts the key-value pair into the {{}} statement*/
 app.get('/', (req, res) => {
-    res.render('home');
+    computers.find({}, {'_id': false}, (err, items) => {
+        if (err) return next(err);
+        res.render('home', {computers:items});
+    });
+});
+    
+// handle form submission response
+app.post('/detail', (req,res) => {
+    computers.findOne({'title':req.body.title}, {'_id':false}, (err, item) => {
+        if (err) return next(err);
+        res.render('detail',{ computer: item });
+    })
+});
+
+app.get('/detail', (req,res) => {
+    computers.findOne({'title':req.query.title}, {'_id':false}, (err, item) => {
+        if (err) return next(err);
+        res.render('detail',{ computer: item });
+    })
 });
 
 // send plain text response
 app.get('/about', (req, res) => {
     res.type('text/html');
-    res.sendFile(__dirname + '/public/about.html');
+    res.sendFile('about');
 });
 
-// handle form submission response
-app.post('/detail', (req,res) => {
-    let result = computers.getItem(req.body.computer);
-    res.render('detail', {title: req.body.computer, result: result})
-});
-
+//delete item
 app.get('/delete', (req,res) => {
-    //let deletedItem = computers.getItem(req.query.computer);
-    let result = computers.deleteItem(req.query.computer);
-    res.render('delete', {
-        deletedItem: req.query.computer,
-        result: result})
+    computers.deleteOne({'title':req.query.title}, (err, item) => {
+        if (err) return next(err);
+        computers.countDocuments((err, result) => {
+            res.render('delete', {
+                title:req.query.title,
+                count:result
+            });
+        })
+    })
 });
 
 app.get('/addform', (req,res) => {
@@ -51,15 +63,16 @@ app.get('/addform', (req,res) => {
 })
 
 app.post('/add', (req,res) => {
-    let title = req.body.title;
-    let type = req.body.type;
-    let price = req.body.price;
-    let newObject = {title, type, price}
-    let result = computers.addItem(newObject);
-    res.render('add', {
-        title: req.body.title,
-        resultStats: result[0],
-        resultDet: result[1]});
+    let newComputer = {'title':req.body.title, 'type':req.body.type, 'price': req.body.price};
+    computers.update({'title':req.body.title}, newComputer, {upsert:true}, (err, result) => {
+        if (err) return next(err);
+        console.log(result);
+        res.render('add', {
+            title: req.body.title,
+            type: req.body.type,
+            price: req.body.price
+        })
+    })
 });
 
 // define 404 handler
@@ -72,4 +85,3 @@ app.use( (req,res) => {
 app.listen(app.get('port'), () => {
     console.log('Express started');
 });
-

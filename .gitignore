@@ -3,3 +3,6 @@ node_modules
 
 #index_express off shoot
 index_express.js
+
+#credentials
+credentials.js
