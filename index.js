@@ -19,9 +19,9 @@ app.set("view engine", ".html");
 the curly brackets accesses the {{}} in view/home.html file
 and inserts the key-value pair into the {{}} statement*/
 app.get('/', (req, res) => {
-    computers.find({}, {'_id': false}, (err, items, next) => {
+    computers.find({}, (err, items, next) => {
         if (err) return next(err);
-        res.render('home', {computers:items});
+        res.render('home', {computers: JSON.stringify(items)});
     });
 });
     

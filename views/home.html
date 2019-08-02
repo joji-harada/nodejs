@@ -1,18 +1,106 @@
-<h1>My home page</h1>
-<b>Welcome to ITC 230</b>
+<html>
 
-<form action="/detail" method="post">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Computer Inventory</title>
+    
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+</head>
+
+<body>
+    
+    <div id="root"></div>
+
+<script type="text/babel">
+    class ComputerApp extends React.Component{
+        constructor(props){
+            super(props); //instantiates parent class
+            this.state = {
+                items: {{{computers}}},
+                curItem: {}
+            };
+        this.onClear = this.onClear.bind(this);
+        this.showDetails = this.showDetails.bind(this);
+        }
+
+        showDetails(event){
+            console.log(event.target);
+            let editItem = this.state.items.find((item) => {
+                return item._id == event.target.id;
+            });
+            this.setState({curItem: editItem});
+        }
+
+        onClear(){
+            this.setState({curItem: {}});
+        }
+        
+        render() {
+            return(
+                <div>
+                    <h1>Computer Store</h1>
+                    <div>
+                        <ItemList
+                            items = {this.state.items}
+                            clickHandler = {this.showDetails}
+                        />
+                        <ItemDetail item={this.state.curItem} />
+                    </div>
+                </div>
+            );
+        }
+    }
+    
+    const ItemList = (props) => {
+        const items_list = props.items.map((item) => {
+            return <li id={item._id} key={item._id} onClick={props.clickHandler}>{item.title}</li>
+        });
+        return (
+            <div>
+                Computer List
+                <ul>
+                    {items_list}
+                </ul>
+            </div>
+        );
+    }
+    
+    const ItemDetail = (props) => {
+        return (
+            <div>
+                title: {props.item.title}<br/>
+                type: {props.item.type}<br/>
+                price: {props.item.price}<br/>
+            </div>
+        );
+    }
+    
+    ReactDOM.render(<ComputerApp />, document.getElementById('root'));
+</script>
+    
+</body>
+<!--
+    <h1>My home page</h1>
+    <b>Welcome to ITC 230</b>
+
+
+    <form action="/detail" method="post">
     <legend>Enter a computer to search for:</legend>
         <input type=text name="title">
     <button>Submit</button>
-</form>
+    </form>
 
 
-<p>{{computers}}</p>
+    <p>{{computers}}</p>
 
-<br>
+    <br>
 
-<!--runs through db and returns a list of items inside-->
-{{#each computers}}
-<li><a href="/detail?title={{title}}">{{title}}</a></li>
-{{/each}}
+    
+    {{#each computers}}
+    <li><a href="/detail?title={{title}}">{{title}}</a></li>
+    {{/each}}
+-->
+</html>
