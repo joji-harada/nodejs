@@ -20,10 +20,14 @@
             super(props); //instantiates parent class
             this.state = {
                 items: {{{computers}}},
+                filter: "",
                 curItem: {}
             };
         this.onClear = this.onClear.bind(this);
         this.showDetails = this.showDetails.bind(this);
+        this.changeHandler = this.changeHandler.bind(this);
+        this.saveHandler = this.saveHandler.bind(this);
+        this.onDelete = this.onDelete.bind(this);
         }
 
         showDetails(event){
@@ -33,9 +37,60 @@
             });
             this.setState({curItem: editItem});
         }
+        changeHandler(event){
+            var newItem = this.state.curItem;
+            newItem[event.target.name] = event.target.value;
+            this.setState({curItem: newItem})
+        }
 
         onClear(){
+            console.log('Clear');
             this.setState({curItem: {}});
+        }
+
+        saveHandler(){
+            let newItem = this.state.curItem;
+            console.log(newItem);
+            
+            if (!newItem.title){
+                return;
+            }
+            fetch("/api/add/", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newItem)
+            }).then(res => res.json())
+                .then((json) => {
+                
+                let newData;
+                if (!newItem._id) {
+                    newData = this.state.items;
+                    newItem._id = json._id;
+                    newData.push(newItem);
+                } else { //update existing item
+                    newData = this.state.items.map((item) => {
+                        if (item._id === newItem._id) {
+                            item = newItem;
+                        }
+                        return item;
+                    });
+                }
+                this.setState({items: newData});
+            });
+        }
+
+        onDelete(){
+            let id = this.state.curItem._id;
+
+            fetch("/api/delete/" + id).then((response) => {
+                return response.json();
+            }).then((results) => {
+                const remainder = this.state.items.filter((item) => {
+                    return item._id !==id;
+                });
+                //update state with new array
+                this.setState({items: remainder, curItem: {}});
+            });
         }
         
         render() {
@@ -47,13 +102,15 @@
                             items = {this.state.items}
                             clickHandler = {this.showDetails}
                         />
-                        <ItemDetail item={this.state.curItem} />
+                        
+                        <ItemDetail item={this.state.curItem} changeHandler={this.changeHandler} reset={this.onClear} save={this.saveHandler}  delete={this.onDelete}/>
                     </div>
                 </div>
             );
         }
     }
     
+    //These are the constants
     const ItemList = (props) => {
         const items_list = props.items.map((item) => {
             return <li id={item._id} key={item._id} onClick={props.clickHandler}>{item.title}</li>
@@ -68,12 +125,16 @@
         );
     }
     
-    const ItemDetail = (props) => {
+    const ItemDetail = (props) => { //changeHandler not working && 
         return (
             <div>
-                title: {props.item.title}<br/>
-                type: {props.item.type}<br/>
-                price: {props.item.price}<br/>
+                <form>
+                title: <input name="title" onChange={props.changeHandler} value={props.item.title || ""}></input><br/>
+                type: <input name="type" onChange={props.changeHandler} value={props.item.type || ""}></input><br/>
+                price: <input name="price" onChange={props.changeHandler} value={props.item.price || ""}></input><br/>
+                </form>
+                
+                <button onClick={props.save}>Save</button>  <button onClick={props.reset}>Reset</button>    <button onClick={props.delete}>Delete</button>
             </div>
         );
     }

@@ -8,6 +8,7 @@ const app = express();
 app.set('port', process.env.PORT || 3000);
 app.use(express.static(__dirname + '/public')); // set location for static files
 app.use(bodyParser.urlencoded({extended: true})); // parse form submissions
+app.use(bodyParser.json());
 app.use('/api', require('cors')()); //set Access-control-allow-origin header for api route
 
 const handlebars = require("express-handlebars");
@@ -94,8 +95,9 @@ app.get('/api/detail/:title', (req,res,next) => {
 });
 
 //api delete
-app.get('/api/delete/:title', (req,res,next) => {
-    computers.deleteOne({title:req.params.title}, (err, item) => {
+app.get('/api/delete/:id', (req,res,next) => {
+    console.log(req.params)
+    computers.deleteOne({_id:req.params.id}, (err, item) => {
         if (err) return next(err);
         res.json(item);
     })
@@ -104,9 +106,30 @@ app.get('/api/delete/:title', (req,res,next) => {
 
 //api add
 app.post('/api/add/', (req,res,next) => {
-    computers.update({'title':req.body.title}, req.body, {upsert:true}, (err, result) => {
+    console.log(req.body)
+    computers.update({'_id':req.body._id}, req.body, {upsert:true}, (err, result) => {
         console.log(result);
-        res.json({/*updated: result.nModified,*/ title: req.body.title});
+        /*
+{ n: 1,
+  nModified: 0,
+  upserted: [ { index: 0, _id: 5d4a2bafa0764c6aa056a270 } ],
+  opTime:
+   { ts:
+      Timestamp { _bsontype: 'Timestamp', low_: 1, high_: 1565141935 },
+     t: 3 },
+  electionId: 7fffffff0000000000000003,
+  ok: 1,
+  operationTime:
+   Timestamp { _bsontype: 'Timestamp', low_: 1, high_: 1565141935 },
+  '$clusterTime':
+   { clusterTime:
+      Timestamp { _bsontype: 'Timestamp', low_: 1, high_: 1565141935 },
+     signature: { hash: [Binary], keyId: [Long] } } }        */
+        if(!result.upserted){
+            res.json({title: req.body.title, _id: req.body._id});
+        } else {
+            res.json({title:req.body.title, _id: result.upserted[0]._id})
+        }
     })
 });
 
